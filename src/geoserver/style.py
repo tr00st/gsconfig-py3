@@ -1,28 +1,22 @@
-'''
-gsconfig is a python library for manipulating a GeoServer instance via the GeoServer RESTConfig API.
+# coding: utf-8
 
-The project is distributed under a MIT License .
-'''
+from urllib.parse import urljoin
 
-__author__ = "David Winslow"
-__copyright__ = "Copyright 2012-2015 Boundless, Copyright 2010-2012 OpenPlans"
-__license__ = "MIT"
+from src.geoserver.support import ResourceInfo, xml_property
 
-from geoserver.support import ResourceInfo, url, xml_property
 
 class Style(ResourceInfo):
-    supported_formats = ["sld10", "sld11", "zip"]
+    supported_formats = ['sld10', 'sld11', 'zip']
     content_types = {
         "sld10": "application/vnd.ogc.sld+xml",
         "sld11": "application/vnd.ogc.se+xml",
         "zip": "application/zip"
     }
 
-    def __init__(self, catalog, name, workspace=None, style_format="sld10"):
+    def __init__(self, catalog, name, workspace=None, style_format='sld10'):
         super(Style, self).__init__()
-        assert isinstance(name, basestring)
-        assert style_format in Style.supported_formats
-
+        assert isinstance(name, str)
+        assert style_format in self.supported_formats
         self.catalog = catalog
         self.workspace = workspace
         self.name = name
@@ -31,7 +25,9 @@ class Style(ResourceInfo):
 
     @property
     def fqn(self):
-        return self.name if not self.workspace else '%s:%s' % (self.workspace, self.name)
+        if not self.workspace:
+            return self.name
+        return '{}:{}'.format(self.workspace, self.name)
 
     @property
     def href(self):
@@ -50,15 +46,20 @@ class Style(ResourceInfo):
         return Style.content_types[self.style_format]
 
     def _build_href(self, extension, create=False):
-        path_parts = ["styles"]
-        query = {}
+        url_part = "styles"
         if not create:
-            path_parts.append(self.name + extension)
+            url_part += "{}{}".format(self.name, extension)
         else:
-            query['name'] = self.name
+            url_part = "?name={}".format(self.name)
         if self.workspace is not None:
-            path_parts = ["workspaces", getattr(self.workspace, 'name', self.workspace)] + path_parts
-        return url(self.catalog.service_url, path_parts, query)
+            url_part = "workspaces/{}/{}".format(
+                getattr(self.workspace, 'name', self.workspace),
+                url_part
+            )
+        return urljoin(
+            self.catalog.service_url,
+            url_part
+        )
 
     filename = xml_property("filename")
 
@@ -72,37 +73,35 @@ class Style(ResourceInfo):
         user_style = self._get_sld_dom().find("{http://www.opengis.net/sld}NamedLayer/{http://www.opengis.net/sld}UserStyle")
         if not user_style:
             user_style = self._get_sld_dom().find("{http://www.opengis.net/sld}UserLayer/{http://www.opengis.net/sld}UserStyle")
-        
         if user_style:
             try:
                 # it is not mandatory
                 title_node = user_style.find("{http://www.opengis.net/sld}Title")
             except:
                 title_node = None
-        
-        return title_node.text if title_node is not None else None
+        if title_node is not None:
+            title_node = title_node.text
+        return title_node
 
     @property
     def sld_name(self):
         user_style = self._get_sld_dom().find("{http://www.opengis.net/sld}NamedLayer/{http://www.opengis.net/sld}UserStyle")
         if not user_style:
             user_style = self._get_sld_dom().find("{http://www.opengis.net/sld}UserLayer/{http://www.opengis.net/sld}UserStyle")
-        
         if user_style:
             try:
                 # it is not mandatory
                 name_node = user_style.find("{http://www.opengis.net/sld}Name")
             except:
                 name_node = None
-            
-        return name_node.text if name_node is not None else None
+        if name_node is not None:
+            name_node = name_node.text
+        return name_node
 
     @property
     def sld_body(self):
-        content = self.catalog.http.request(self.body_href)[1]
-        return content
+        return self.catalog.session.get(self.body_href).text
 
     def update_body(self, body):
-        headers = { "Content-Type": self.content_type }
-        self.catalog.http.request(
-            self.body_href, "PUT", body, headers)
+        headers = {"Content-Type": self.content_type}
+        self.catalog.session.put(self.body_href, data=body, headers=headers)

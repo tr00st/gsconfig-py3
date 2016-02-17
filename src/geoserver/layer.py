@@ -1,51 +1,48 @@
-'''
-gsconfig is a python library for manipulating a GeoServer instance via the GeoServer RESTConfig API.
+# coding: utf-8
 
-The project is distributed under a MIT License .
-'''
+from urllib.parse import urljoin
 
-__author__ = "David Winslow"
-__copyright__ = "Copyright 2012-2015 Boundless, Copyright 2010-2012 OpenPlans"
-__license__ = "MIT"
+from src.geoserver.support import ResourceInfo, xml_property, write_bool
+from src.geoserver.style import Style
+from src.geoserver import settings
 
-from geoserver.support import ResourceInfo, xml_property, write_bool, url
-from geoserver.style import Style
 
-class _attribution(object):
+class _Attribution:
     def __init__(self, title, width, height):
         self.title = title
         self.width = width
         self.height = height
 
+
 def _read_attribution(node):
     title = node.find("title")
     width = node.find("logoWidth")
     height = node.find("logoHeight")
-
     if title is not None:
         title = title.text
     if width is not None:
         width = width.text
     if height is not None:
         height = height.text
+    return _Attribution(title, width, height)
 
-    return _attribution(title, width, height)
 
-def _write_attribution(builder, attr):
+def _write_attribution(builder, attribution):
     builder.start("attribution", dict())
-    if attr.title is not None:
+    if attribution.title is not None:
         builder.start("title", dict())
-        builder.data(attr.title)
+        builder.data(attribution.title)
         builder.end("title")
-    if attr.width is not None:
+    if attribution.width is not None:
         builder.start("logoWidth", dict())
-        builder.data(attr.width)
+        builder.data(attribution.width)
         builder.end("logoWidth")
-    if attr.height is not None:
+    if attribution.height is not None:
         builder.start("logoHeight", dict())
-        builder.data(attr.height)
+        builder.data(attribution.height)
         builder.end("logoHeight")
     builder.end("attribution")
+
 
 def _write_style_element(builder, name):
     ws, name = name.split(':') if ':' in name else (None, name)
@@ -56,6 +53,7 @@ def _write_style_element(builder, name):
         builder.start("workspace", dict())
         builder.data(ws)
         builder.end("workspace")
+
 
 def _write_default_style(builder, name):
     builder.start("defaultStyle", dict())
@@ -80,20 +78,24 @@ class Layer(ResourceInfo):
         self.name = name
 
     resource_type = "layer"
-    save_method = "PUT"
+    save_method = settings.PUT
 
     @property
     def href(self):
-        return url(self.catalog.service_url, ["layers", self.name + ".xml"])
+        return urljoin(
+            self.catalog.service_url,
+            "layer/{}.xml".format(self.name)
+        )
 
     @property
     def resource(self):
-        if self.dom is None: 
+        if self.dom is None:
             self.fetch()
         name = self.dom.find("resource/name").text
         return self.catalog.get_resource(name)
 
-    def _get_default_style(self):
+    @property
+    def default_style(self):
         if 'default_style' in self.dirty:
             return self.dirty['default_style']
         if self.dom is None:
@@ -102,54 +104,55 @@ class Layer(ResourceInfo):
         # aborted data uploads can result in no default style
         return self._resolve_style(element) if element is not None else None
 
-    def _resolve_style(self, element):
-        # instead of using name or the workspace element (which only appears
-        # in >=2.4), just use the atom link href attribute
-        atom_link = [ n for n in element.getchildren() if 'href' in n.attrib ]
-        if atom_link:
-            style_workspace_url = atom_link[0].attrib.get("href")
-            return self.catalog.get_style_by_url(style_workspace_url)
-
-    def _set_default_style(self, style):
+    @default_style.setter
+    def default_style(self, style):
         if isinstance(style, Style):
             style = style.fqn
         self.dirty["default_style"] = style
 
-    def _get_alternate_styles(self):
+    @property
+    def styles(self):
         if "alternate_styles" in self.dirty:
             return self.dirty["alternate_styles"]
         if self.dom is None:
             self.fetch()
         styles_list = self.dom.findall("styles/style")
-        return filter(None, [ self._resolve_style(s) for s in styles_list ])
+        return filter(None, [self._resolve_style(s) for s in styles_list])
 
-    def _set_alternate_styles(self, styles):
+    @styles.setter
+    def styles(self, styles):
         self.dirty["alternate_styles"] = styles
 
-    default_style = property(_get_default_style, _set_default_style)
-    styles = property(_get_alternate_styles, _set_alternate_styles)
+    def _resolve_style(self, element):
+        # instead of using name or the workspace element (which only appears
+        # in >=2.4), just use the atom link href attribute
+        atom_link = [n for n in element.getchildren() if 'href' in n.attrib]
+        if atom_link:
+            style_workspace_url = atom_link[0].attrib.get("href")
+            return self.catalog.get_style_by_url(style_workspace_url)
+
+    @property
+    def attribution(self):
+        return self.attribution_object.title
+
+    @attribution.setter
+    def attribution(self, text):
+        self.dirty["attribution"] = _Attribution(
+            text,
+            self.attribution_object.width,
+            self.attribution_object.height
+        )
+        assert self.attribution_object.title == text
 
     attribution_object = xml_property("attribution", _read_attribution)
     enabled = xml_property("enabled", lambda x: x.text == "true")
-    advertised = xml_property("advertised", lambda x: x.text == "true", default=True)
-    
-    def _get_attr_text(self):
-        return self.attribution_object.title
+    advertised = xml_property("advertised", lambda x: x.text == "true",
+                              default=True)
 
-    def _set_attr_text(self, text):
-        self.dirty["attribution"] = _attribution(
-                    text,
-                    self.attribution_object.width,
-                    self.attribution_object.height
-                    )
-        assert self.attribution_object.title == text
-
-    attribution = property(_get_attr_text, _set_attr_text)
-
-    writers = dict(
-            attribution = _write_attribution,
-            enabled = write_bool("enabled"),
-            advertised = write_bool("advertised"),
-            default_style = _write_default_style,
-            alternate_styles = _write_alternate_styles
-            )
+    writers = {
+        'attribution': _write_attribution,
+        'enabled': write_bool("enabled"),
+        'advertised': write_bool("advertised"),
+        'default_style': _write_default_style,
+        'alternate_styles': _write_alternate_styles
+    }
