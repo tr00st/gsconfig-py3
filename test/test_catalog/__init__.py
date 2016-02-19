@@ -5,7 +5,7 @@ import os
 
 import psycopg2
 
-from src.geoserver.catalog import Catalog
+from geoserver.catalog import Catalog
 from test import settings
 
 

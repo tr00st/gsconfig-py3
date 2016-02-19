@@ -2,9 +2,9 @@
 
 from urllib.parse import urljoin
 
-from src.geoserver.support import ResourceInfo, xml_property, write_bool
-from src.geoserver.style import Style
-from src.geoserver import settings
+from geoserver.support import ResourceInfo, xml_property, write_bool
+from geoserver.style import Style
+from geoserver import settings
 
 
 class _Attribution:

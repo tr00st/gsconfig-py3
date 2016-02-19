@@ -2,7 +2,7 @@
 
 from urllib.parse import urljoin
 
-from src.geoserver.support import ResourceInfo, xml_property
+from geoserver.support import ResourceInfo, xml_property
 
 
 class Style(ResourceInfo):

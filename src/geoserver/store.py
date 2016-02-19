@@ -2,11 +2,11 @@
 
 from urllib.parse import urljoin
 
-from src.geoserver import settings
-from src.geoserver.resource import featuretype_from_index, \
+from geoserver import settings
+from geoserver.resource import featuretype_from_index, \
     coverage_from_index, wmslayer_from_index
-from src.geoserver.workspace import Workspace
-from src.geoserver.support import ResourceInfo, xml_property, \
+from geoserver.workspace import Workspace
+from geoserver.support import ResourceInfo, xml_property, \
     key_value_pairs, write_bool, write_dict, write_string
 
 

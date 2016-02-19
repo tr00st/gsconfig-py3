@@ -1,7 +1,6 @@
 # coding: utf-8
 
-import os
-from test.test_catalog import TestCatalogBase, BASE_PATH
+from test.test_catalog import TestCatalogBase
 
 
 class TestCatalogLayerGroup(TestCatalogBase):

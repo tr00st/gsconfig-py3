@@ -8,8 +8,8 @@ The project is distributed under a MIT License .
 
 from urllib.parse import urljoin
 
-from src.geoserver import settings
-from src.geoserver.support import ResourceInfo, xml_property, write_string, \
+from geoserver import settings
+from geoserver.support import ResourceInfo, xml_property, write_string, \
     bbox, metadata, write_metadata, write_bbox, string_list, \
     write_string_list, attribute_list, write_bool
 

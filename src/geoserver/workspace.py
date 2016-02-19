@@ -2,7 +2,7 @@
 
 from urllib.parse import urljoin
 
-from src.geoserver.support import ResourceInfo, xml_property, write_bool
+from geoserver.support import ResourceInfo, xml_property, write_bool
 
 
 def workspace_from_index(catalog, node):

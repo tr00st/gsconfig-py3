@@ -10,16 +10,16 @@ from xml.parsers.expat import ExpatError
 
 import requests
 
-from src.geoserver import settings
-from src.geoserver.resource import FeatureType, Coverage
-from src.geoserver.support import prepare_upload_bundle, _decode_dict
-from src.geoserver.workspace import workspace_from_index, Workspace
-from src.geoserver.store import coveragestore_from_index, \
+from geoserver import settings
+from geoserver.resource import FeatureType, Coverage
+from geoserver.support import prepare_upload_bundle, _decode_dict
+from geoserver.workspace import workspace_from_index, Workspace
+from geoserver.store import coveragestore_from_index, \
     wmsstore_from_index, datastore_from_index, UnsavedDataStore, \
     UnsavedCoverageStore, UnsavedWmsStore
-from src.geoserver.layer import Layer
-from src.geoserver.layergroup import LayerGroup, UnsavedLayerGroup
-from src.geoserver.style import Style
+from geoserver.layer import Layer
+from geoserver.layergroup import LayerGroup, UnsavedLayerGroup
+from geoserver.style import Style
 
 
 LOGGER = logging.getLogger("gsconfig2.catalog")

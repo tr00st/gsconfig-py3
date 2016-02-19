@@ -2,9 +2,9 @@
 
 from urllib.parse import urljoin
 
-from src.geoserver.support import ResourceInfo, write_string, write_bbox, \
+from geoserver.support import ResourceInfo, write_string, write_bbox, \
     xml_property, bbox
-from src.geoserver import settings
+from geoserver import settings
 
 
 def _maybe_text(n):
