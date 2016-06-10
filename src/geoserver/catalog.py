@@ -713,6 +713,8 @@ class Catalog:
         # What is the use of this request?
         r = self.session.post(resource_url, data=feature_type.message(),
                               headers=headers, params=params)
+        if r.status_code < 200 or r.status_code > 299:
+            raise UploadError(r.text)
         feature_type.fetch()
         return feature_type
 
