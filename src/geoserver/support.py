@@ -164,7 +164,7 @@ def write_string(name):
 def write_metadata(name):
     def write(builder, metadata):
         builder.start(name, dict())
-        for k, v in metadata.iteritems():
+        for k, v in metadata.items():
             builder.start("entry", dict(key=k))
             if k in ['time', 'elevation'] or k.startswith('custom_dimension'):
                 dimension_info(builder, v)
