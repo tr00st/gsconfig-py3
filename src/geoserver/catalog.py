@@ -675,7 +675,7 @@ class Catalog:
             raise FailedRequestError(r.text)
 
     def publish_featuretype(self, name, store, native_crs, srs=None,
-                            jdbc_virtual_table=None):
+                            jdbc_virtual_table=None, native_bbox=None):
         """
         Publish a featuretype from data in an existing store
         """
@@ -691,6 +691,8 @@ class Catalog:
         feature_type.dirty['name'] = name
         feature_type.dirty['srs'] = srs
         feature_type.dirty['nativeCRS'] = native_crs
+        if native_bbox is not None:
+            feature_type.native_bbox = native_bbox
         feature_type.enabled = True
         feature_type.title = name
         headers = {
