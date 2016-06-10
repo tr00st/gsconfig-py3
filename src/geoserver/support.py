@@ -133,15 +133,19 @@ class DimensionInfo:
 
 def xml_property(path, converter=lambda x: x.text, default=None):
     def getter(self):
-        if path in self.dirty:
-            return self.dirty[path]
-        else:
-            if self.dom is None:
-                self.fetch()
-            node = self.dom.find(path)
-            if node is not None:
-                return converter(self.dom.find(path))
-            return default
+        try:
+            if path in self.dirty:
+                return self.dirty[path]
+            else:
+                if self.dom is None:
+                    self.fetch()
+                node = self.dom.find(path)
+                if node is not None:
+                    return converter(self.dom.find(path))
+                return default
+        except Exception as e:
+            raise AttributeError(e)
+        
 
     def setter(self, value):
         self.dirty[path] = value
