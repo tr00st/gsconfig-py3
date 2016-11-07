@@ -46,7 +46,7 @@ class Style(ResourceInfo):
         return Style.content_types[self.style_format]
 
     def _build_href(self, extension, create=False):
-        url_part = "styles"
+        url_part = "styles/"
         if not create:
             url_part += "{}{}".format(self.name, extension)
         else:
