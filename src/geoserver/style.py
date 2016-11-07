@@ -50,7 +50,7 @@ class Style(ResourceInfo):
         if not create:
             url_part += "{}{}".format(self.name, extension)
         else:
-            url_part = "?name={}".format(self.name)
+            url_part += "?name={}".format(self.name)
         if self.workspace is not None:
             url_part = "workspaces/{}/{}".format(
                 getattr(self.workspace, 'name', self.workspace),
