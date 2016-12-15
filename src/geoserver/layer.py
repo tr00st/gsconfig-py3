@@ -52,17 +52,17 @@ def _write_attribution(builder, attribution):
         builder.start("logoHeight", dict())
         builder.data(attribution.height)
         builder.end("logoHeight")
-+    if attr.href is not None:
+    if attribution.href is not None:
         builder.start("href", dict())
-        builder.data(attr.href)
+        builder.data(attribution.href)
         builder.end("href")
-    if attr.url is not None:
+    if attribution.url is not None:
         builder.start("logoURL", dict())
-        builder.data(attr.url)
+        builder.data(attribution.url)
         builder.end("logoURL")
-    if attr.type is not None:
+    if attribution.logo_type is not None:
         builder.start("logoType", dict())
-        builder.data(attr.type)
+        builder.data(attribution.logo_type)
         builder.end("logoType")
     builder.end("attribution")
 
@@ -181,7 +181,7 @@ class Layer(ResourceInfo):
                  'type': self.attribution_object.logo_type }
 
     def _set_attr_attribution(self, attribution):
-        self.dirty["attribution"] = _attribution( attribution['title'],
+        self.dirty["attribution"] = _Attribution( attribution['title'],
                                                   attribution['width'],
                                                   attribution['height'],
                                                   attribution['href'],
@@ -193,7 +193,7 @@ class Layer(ResourceInfo):
         assert self.attribution_object.height == attribution['height']
         assert self.attribution_object.href == attribution['href']
         assert self.attribution_object.url == attribution['url']
-        assert self.attribution_object.type == attribution['type']
+        assert self.attribution_object.logo_type == attribution['type']
 
     attribution = property(_get_attr_attribution, _set_attr_attribution)
 
