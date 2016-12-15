@@ -184,11 +184,10 @@ class Catalog:
         self._cache.clear()
         return r
 
-    def save(self, obj):
+    def save(self, obj, content_type="application/xml"):
         """
         saves an object to the REST service
-
-        gets the object's REST location and the XML from the object,
+        gets the object's REST location and the data from the object,
         then POSTS the request.
         :param obj: The object to save.
         :return: The response given by the server.
@@ -202,8 +201,8 @@ class Catalog:
             settings.PUT: self.session.put
         }
         headers = {
-            "Content-type": "application/xml",
-            "Accept": "application/xml"
+            "Content-type": content_type,
+            "Accept": content_type
         }
         r = methods[save_method](rest_url, data=message, headers=headers)
         self._cache.clear()

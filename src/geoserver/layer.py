@@ -8,23 +8,34 @@ from geoserver import settings
 
 
 class _Attribution:
-    def __init__(self, title, width, height):
+    def __init__(self, title, width, height, href, url, logo_type):
         self.title = title
         self.width = width
         self.height = height
-
+        self.href = href
+        self.url = url
+        self.logo_type = logo_type
 
 def _read_attribution(node):
     title = node.find("title")
     width = node.find("logoWidth")
     height = node.find("logoHeight")
+    href = node.find("href")
+    url = node.find("logoURL")
+    logo_type = node.find("logoType")
     if title is not None:
         title = title.text
     if width is not None:
         width = width.text
     if height is not None:
         height = height.text
-    return _Attribution(title, width, height)
+    if href is not None:
+        href = href.text
+    if url is not None:
+        url = url.text
+    if logo_type is not None:
+        logo_type = logo_type.text
+    return _Attribution(title, width, height, href, url, logo_type)
 
 
 def _write_attribution(builder, attribution):
@@ -41,6 +52,18 @@ def _write_attribution(builder, attribution):
         builder.start("logoHeight", dict())
         builder.data(attribution.height)
         builder.end("logoHeight")
++    if attr.href is not None:
+        builder.start("href", dict())
+        builder.data(attr.href)
+        builder.end("href")
+    if attr.url is not None:
+        builder.start("logoURL", dict())
+        builder.data(attr.url)
+        builder.end("logoURL")
+    if attr.type is not None:
+        builder.start("logoType", dict())
+        builder.data(attr.type)
+        builder.end("logoType")
     builder.end("attribution")
 
 
@@ -148,6 +171,31 @@ class Layer(ResourceInfo):
     enabled = xml_property("enabled", lambda x: x.text == "true")
     advertised = xml_property("advertised", lambda x: x.text == "true",
                               default=True)
+
+    def _get_attr_attribution(self):
+        return { 'title': self.attribution_object.title,
+                 'width': self.attribution_object.width,
+                 'height': self.attribution_object.height,
+                 'href': self.attribution_object.href,
+                 'url': self.attribution_object.url,
+                 'type': self.attribution_object.logo_type }
+
+    def _set_attr_attribution(self, attribution):
+        self.dirty["attribution"] = _attribution( attribution['title'],
+                                                  attribution['width'],
+                                                  attribution['height'],
+                                                  attribution['href'],
+                                                  attribution['url'],
+                                                  attribution['type'] )
+
+        assert self.attribution_object.title == attribution['title']
+        assert self.attribution_object.width == attribution['width']
+        assert self.attribution_object.height == attribution['height']
+        assert self.attribution_object.href == attribution['href']
+        assert self.attribution_object.url == attribution['url']
+        assert self.attribution_object.type == attribution['type']
+
+    attribution = property(_get_attr_attribution, _set_attr_attribution)
 
     writers = {
         'attribution': _write_attribution,

@@ -145,7 +145,7 @@ def xml_property(path, converter=lambda x: x.text, default=None):
                 return default
         except Exception as e:
             raise AttributeError(e)
-        
+
 
     def setter(self, value):
         self.dirty[path] = value
@@ -216,6 +216,8 @@ def write_dict(name):
     def write(builder, pairs):
         builder.start(name, dict())
         for k, v in pairs.items():
+            if k == 'port':
+                v = str(v)
             builder.start("entry", dict(key=k))
             builder.data(v)
             builder.end("entry")
