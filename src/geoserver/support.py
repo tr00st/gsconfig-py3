@@ -493,9 +493,9 @@ def dimension_info(builder, metadata):
             builder.start("units", dict())
             builder.data(metadata.units)
             builder.end("units")
-        if metadata.unitSymbol is not None:
+        if metadata.unit_symbol is not None:
             builder.start("unitSymbol", dict())
-            builder.data(metadata.unitSymbol)
+            builder.data(metadata.unit_symbol)
             builder.end("unitSymbol")
         if metadata.strategy is not None:
             builder.start("defaultValue", dict())
